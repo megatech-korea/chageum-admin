@@ -43,8 +43,7 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            sudo rm -rf /var/www/chageum-admin/*
-            sudo mkdir -p /var/www/chageum-admin
-            sudo cp -r /home/ubuntu/admin-temp/* /var/www/chageum-admin/
+            sudo rm -rf /opt/chageum/admin/*
+            sudo cp -r /home/ubuntu/admin-temp/* /opt/chageum/admin/
             rm -rf /home/ubuntu/admin-temp
             sudo systemctl reload nginx

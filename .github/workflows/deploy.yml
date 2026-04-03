@@ -1,0 +1,50 @@
+name: Deploy Chageum Admin to EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+
+      - name: Install Dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Build
+        env:
+          VITE_API_URL: https://api.chageum.co.kr
+        run: npm run build
+
+      - name: Copy files to EC2
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "dist/*"
+          target: "/home/ubuntu/admin-temp"
+          strip_components: 1
+
+      - name: Move files & Restart Nginx
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            sudo rm -rf /var/www/chageum-admin/*
+            sudo mkdir -p /var/www/chageum-admin
+            sudo cp -r /home/ubuntu/admin-temp/* /var/www/chageum-admin/
+            rm -rf /home/ubuntu/admin-temp
+            sudo systemctl reload nginx

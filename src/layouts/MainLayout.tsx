@@ -1,7 +1,7 @@
 // src/layouts/MainLayout.tsx
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Layout, Menu, Button, Avatar, Dropdown, theme } from "antd";
+import { Layout, Menu, Button, Avatar, Dropdown, Badge, theme } from "antd";
 import {
   DashboardOutlined,
   FileTextOutlined,
@@ -55,6 +55,7 @@ export default function MainLayout({
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
+      {/* 흰색 사이드바 */}
       <Sider
         trigger={null}
         collapsible
@@ -63,19 +64,18 @@ export default function MainLayout({
         style={{
           background: "#fff",
           borderRight: `1px solid ${token.colorBorderSecondary}`,
-          boxShadow: "2px 0 8px rgba(0,0,0,0.04)",
         }}
       >
         {/* 로고 */}
         <div
           style={{
-            height: 64,
+            height: 60,
             display: "flex",
             alignItems: "center",
             justifyContent: collapsed ? "center" : "flex-start",
             padding: collapsed ? 0 : "0 20px",
-            borderBottom: `1px solid ${token.colorBorderSecondary}`,
             gap: 10,
+            borderBottom: `1px solid ${token.colorBorderSecondary}`,
           }}
         >
           <div
@@ -95,20 +95,24 @@ export default function MainLayout({
             </span>
           </div>
           {!collapsed && (
-            <span
-              style={{
-                fontWeight: 800,
-                fontSize: 16,
-                color: "#0A88FF",
-                letterSpacing: "-0.5px",
-              }}
-            >
-              차금차금.
-            </span>
+            <div>
+              <div
+                style={{
+                  color: "#0A88FF",
+                  fontWeight: 800,
+                  fontSize: 15,
+                  letterSpacing: "-0.5px",
+                  lineHeight: 1.2,
+                }}
+              >
+                차금차금.
+              </div>
+              <div style={{ color: "#aaa", fontSize: 10 }}>관리자 시스템</div>
+            </div>
           )}
         </div>
 
-        {/* 메뉴 */}
+        {/* 메뉴 - 라이트 테마 */}
         <Menu
           mode="inline"
           selectedKeys={[location.pathname]}
@@ -118,7 +122,8 @@ export default function MainLayout({
         />
       </Sider>
 
-      <Layout>
+      {/* 오른쪽: 회색 배경 */}
+      <Layout style={{ background: "#f4f6f9" }}>
         {/* 헤더 */}
         <Header
           style={{
@@ -127,42 +132,57 @@ export default function MainLayout({
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
+            height: 60,
             borderBottom: `1px solid ${token.colorBorderSecondary}`,
-            height: 64,
           }}
         >
           <Button
             type="text"
             icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
             onClick={() => setCollapsed(!collapsed)}
-            style={{ fontSize: 16 }}
+            style={{ fontSize: 18, color: "#555" }}
           />
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <Button
-              type="text"
-              icon={<BellOutlined />}
-              style={{ fontSize: 16 }}
-            />
-            <Dropdown menu={userMenu} placement="bottomRight">
-              <Avatar
-                style={{ background: "#0A88FF", cursor: "pointer" }}
-                icon={<UserOutlined />}
+            <Badge count={0}>
+              <Button
+                type="text"
+                icon={<BellOutlined style={{ fontSize: 18, color: "#555" }} />}
               />
+            </Badge>
+            <Dropdown menu={userMenu} placement="bottomRight">
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  cursor: "pointer",
+                }}
+              >
+                <Avatar
+                  style={{ background: "#0A88FF" }}
+                  icon={<UserOutlined />}
+                />
+                <span style={{ fontSize: 13, color: "#333", fontWeight: 500 }}>
+                  관리자
+                </span>
+              </div>
             </Dropdown>
           </div>
         </Header>
 
-        {/* 콘텐츠 */}
-        <Content
-          style={{
-            margin: 24,
-            padding: 24,
-            background: "#fff",
-            borderRadius: 12,
-            minHeight: "calc(100vh - 112px)",
-          }}
-        >
-          {children}
+        {/* 콘텐츠: 회색 배경 위에 흰 카드 */}
+        <Content style={{ padding: 24, minHeight: "calc(100vh - 60px)" }}>
+          <div
+            style={{
+              background: "#fff",
+              borderRadius: 8,
+              padding: 24,
+              minHeight: "calc(100vh - 108px)",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+            }}
+          >
+            {children}
+          </div>
         </Content>
       </Layout>
     </Layout>

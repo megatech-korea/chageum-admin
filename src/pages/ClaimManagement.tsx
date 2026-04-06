@@ -126,7 +126,13 @@ export default function ClaimManagement() {
       key: "faultRatio",
       width: 100,
       render: (v: string) =>
-        v === "solo" ? "단독" : v === "undecided" ? "모름" : `${v} 과실`,
+        !v || v === "null"
+          ? "-"
+          : v === "solo"
+            ? "단독"
+            : v === "undecided"
+              ? "모름"
+              : `${v} 과실`,
     },
     {
       title: "상태",

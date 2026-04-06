@@ -49,6 +49,7 @@ interface ClaimItem {
   refundAmount?: number;
   adminMemo?: string;
   createdAt?: string;
+  documentUrls?: string[];
 }
 
 export default function ClaimManagement() {
@@ -267,6 +268,30 @@ export default function ClaimManagement() {
               {detailItem.createdAt
                 ? dayjs(detailItem.createdAt).format("YYYY.MM.DD HH:mm")
                 : "-"}
+            </Descriptions.Item>
+            <Descriptions.Item label="첨부 서류">
+              {detailItem.documentUrls && detailItem.documentUrls.length > 0 ? (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                  {detailItem.documentUrls.map((url, idx) => (
+                    <a key={idx} href={url} target="_blank" rel="noreferrer">
+                      <img
+                        src={url}
+                        alt={`첨부${idx + 1}`}
+                        style={{
+                          width: 80,
+                          height: 80,
+                          objectFit: "cover",
+                          borderRadius: 4,
+                          border: "1px solid #eee",
+                          cursor: "pointer",
+                        }}
+                      />
+                    </a>
+                  ))}
+                </div>
+              ) : (
+                "-"
+              )}
             </Descriptions.Item>
           </Descriptions>
         )}

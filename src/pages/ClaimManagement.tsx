@@ -14,8 +14,14 @@ import {
   Form,
   Input,
   InputNumber,
+  Spin,
 } from "antd";
-import { EyeOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
+import {
+  EyeOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  UserOutlined,
+} from "@ant-design/icons";
 import api from "../api/client";
 import dayjs from "dayjs";
 
@@ -39,6 +45,7 @@ const statusInfo = (status: string) =>
 
 interface ClaimItem {
   claimId: string;
+  uid?: string;
   name: string;
   applicantType: string;
   roadAddress?: string;
@@ -52,12 +59,26 @@ interface ClaimItem {
   documentUrls?: string[];
 }
 
+interface UserInfo {
+  uid: string;
+  name?: string;
+  phone?: string;
+  email?: string;
+  birthDate?: string;
+  gender?: string;
+  roadAddress?: string;
+  provider?: string;
+  createdAt?: string;
+}
+
 export default function ClaimManagement() {
   const [claims, setClaims] = useState<ClaimItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [detailItem, setDetailItem] = useState<ClaimItem | null>(null);
   const [editItem, setEditItem] = useState<ClaimItem | null>(null);
+  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
+  const [userLoading, setUserLoading] = useState(false);
   const [form] = Form.useForm();
 
   const fetchClaims = async () => {
@@ -80,6 +101,23 @@ export default function ClaimManagement() {
   useEffect(() => {
     fetchClaims();
   }, [statusFilter]);
+
+  const openUserInfo = async (uid?: string) => {
+    if (!uid) {
+      message.warning("사용자 정보 없음");
+      return;
+    }
+    setUserLoading(true);
+    setUserInfo(null);
+    try {
+      const res = await api.get(`/api/admin/users/${uid}`);
+      setUserInfo(res.data as UserInfo);
+    } catch {
+      message.error("사용자 정보 조회 실패");
+    } finally {
+      setUserLoading(false);
+    }
+  };
 
   const openEdit = (item: ClaimItem) => {
     setEditItem(item);
@@ -113,7 +151,22 @@ export default function ClaimManagement() {
   };
 
   const columns = [
-    { title: "신청자", dataIndex: "name", key: "name", width: 90 },
+    {
+      title: "신청자",
+      dataIndex: "name",
+      key: "name",
+      width: 90,
+      render: (v: string, record: ClaimItem) => (
+        <Button
+          type="link"
+          size="small"
+          style={{ padding: 0 }}
+          onClick={() => openUserInfo(record.uid)}
+        >
+          {v}
+        </Button>
+      ),
+    },
     {
       title: "사고 지역",
       dataIndex: "roadAddress",
@@ -161,9 +214,14 @@ export default function ClaimManagement() {
     {
       title: "관리",
       key: "action",
-      width: 150,
+      width: 160,
       render: (_: unknown, record: ClaimItem) => (
         <Space>
+          <Button
+            size="small"
+            icon={<UserOutlined />}
+            onClick={() => openUserInfo(record.uid)}
+          />
           <Button
             size="small"
             icon={<EyeOutlined />}
@@ -224,6 +282,63 @@ export default function ClaimManagement() {
         size="middle"
       />
 
+      {/* 사용자 정보 모달 */}
+      <Modal
+        title="사용자 정보"
+        open={userInfo !== null || userLoading}
+        onCancel={() => {
+          setUserInfo(null);
+          setUserLoading(false);
+        }}
+        footer={null}
+        width={480}
+      >
+        {userLoading ? (
+          <div style={{ textAlign: "center", padding: 40 }}>
+            <Spin />
+          </div>
+        ) : (
+          userInfo && (
+            <Descriptions
+              column={1}
+              bordered
+              size="small"
+              style={{ marginTop: 16 }}
+            >
+              <Descriptions.Item label="이름">
+                {userInfo.name || "-"}
+              </Descriptions.Item>
+              <Descriptions.Item label="연락처">
+                <Text strong style={{ fontSize: 15 }}>
+                  {userInfo.phone || "-"}
+                </Text>
+              </Descriptions.Item>
+              <Descriptions.Item label="이메일">
+                {userInfo.email || "-"}
+              </Descriptions.Item>
+              <Descriptions.Item label="생년월일">
+                {userInfo.birthDate || "-"}
+              </Descriptions.Item>
+              <Descriptions.Item label="성별">
+                {userInfo.gender || "-"}
+              </Descriptions.Item>
+              <Descriptions.Item label="주소">
+                {userInfo.roadAddress || "-"}
+              </Descriptions.Item>
+              <Descriptions.Item label="가입 경로">
+                {userInfo.provider || "-"}
+              </Descriptions.Item>
+              <Descriptions.Item label="가입일">
+                {userInfo.createdAt
+                  ? dayjs(userInfo.createdAt).format("YYYY.MM.DD")
+                  : "-"}
+              </Descriptions.Item>
+            </Descriptions>
+          )
+        )}
+      </Modal>
+
+      {/* 신청 상세 모달 */}
       <Modal
         title="신청 상세"
         open={!!detailItem}
@@ -303,6 +418,7 @@ export default function ClaimManagement() {
         )}
       </Modal>
 
+      {/* 상태 변경 모달 */}
       <Modal
         title="상태 변경"
         open={!!editItem}
